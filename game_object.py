@@ -136,3 +136,53 @@ class StaticObject(arcade.Sprite):
     ):
         super().__init__(image_path, 1)
 
+class YellowBird(Bird):
+    def __init__(self, 
+                 image_path: str, 
+                 impulse_vector: ImpulseVector, 
+                 x: float, 
+                 y: float, 
+                 space: pymunk.Space, 
+                 mass: float = 5, 
+                 radius: float = 12, 
+                 max_impulse: float = 100, 
+                 power_multiplier: float = 50,
+                 elasticity: float = 0.8, 
+                 friction: float = 1, 
+                 collision_layer: int = 0, 
+                 boost_multiplier: float = 2):
+        super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
+        self.boost_multiplier = boost_multiplier
+        self.has_boosted = False
+
+    def on_left_click(self):
+        if not self.has_boosted:
+            impulse_vector = pymunk.Vec2d(1, 0).rotated(self.body.angle) * self.boost_multiplier * self.body.mass
+            self.body.apply_impulse_at_local_point(impulse_vector)
+            self.has_boosted = True
+class BlueBird(Bird):
+    def __init__(self, 
+                 image_path: str, 
+                 impulse_vector: ImpulseVector, 
+                 x: float, 
+                 y: float, 
+                 space: pymunk.Space, 
+                 mass: float = 5, 
+                 radius: float = 12, 
+                 max_impulse: float = 100, 
+                 power_multiplier: float = 50,
+                 elasticity: float = 0.8, 
+                 friction: float = 1, 
+                 collision_layer: int = 0):
+        super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
+        self.has_split = False
+
+    def on_left_click(self):
+        if not self.has_split:
+            angles = [-30, 0, 30]
+            for angle in angles:
+                new_impulse_vector = pymunk.Vec2d(1, 0).rotated(math.radians(angle)) * self.body.velocity.length
+                new_bird = BlueBird(self.texture.name, ImpulseVector(new_impulse_vector.angle, new_impulse_vector.length), 
+                                    self.body.position.x, self.body.position.y, self.space)
+                self.space.add(new_bird)
+            self.has_split = True

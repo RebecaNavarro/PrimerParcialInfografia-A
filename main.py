@@ -14,7 +14,7 @@ logging.getLogger("PIL").setLevel(logging.WARNING)
 logger = logging.getLogger("main")
 
 WIDTH = 1800
-HEIGHT = 800
+HEIGHT = 600
 TITLE = "Angry birds"
 GRAVITY = -900
 
