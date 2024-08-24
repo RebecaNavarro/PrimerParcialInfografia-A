@@ -137,20 +137,22 @@ class StaticObject(arcade.Sprite):
         super().__init__(image_path, 1)
 
 class YellowBird(Bird):
-    def __init__(self, 
-                 image_path: str, 
-                 impulse_vector: ImpulseVector, 
-                 x: float, 
-                 y: float, 
-                 space: pymunk.Space, 
-                 mass: float = 5, 
-                 radius: float = 12, 
-                 max_impulse: float = 100, 
-                 power_multiplier: float = 50,
-                 elasticity: float = 0.8, 
-                 friction: float = 1, 
-                 collision_layer: int = 0, 
-                 boost_multiplier: float = 2):
+    def __init__(
+        self, 
+        image_path: str, 
+        impulse_vector: ImpulseVector, 
+        x: float, 
+        y: float, 
+        space: pymunk.Space, 
+        mass: float = 5, 
+        radius: float = 12, 
+        max_impulse: float = 100, 
+        power_multiplier: float = 50,
+        elasticity: float = 0.8, 
+        friction: float = 1, 
+        collision_layer: int = 0, 
+        boost_multiplier: float = 2
+    ):
         super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
         self.boost_multiplier = boost_multiplier
         self.has_boosted = False
@@ -161,19 +163,21 @@ class YellowBird(Bird):
             self.body.apply_impulse_at_local_point(impulse_vector)
             self.has_boosted = True
 class BlueBird(Bird):
-    def __init__(self, 
-                 image_path: str, 
-                 impulse_vector: ImpulseVector, 
-                 x: float, 
-                 y: float, 
-                 space: pymunk.Space, 
-                 mass: float = 5, 
-                 radius: float = 12, 
-                 max_impulse: float = 100, 
-                 power_multiplier: float = 50,
-                 elasticity: float = 0.8, 
-                 friction: float = 1, 
-                 collision_layer: int = 0):
+    def __init__(
+        self, 
+        image_path: str, 
+        impulse_vector: ImpulseVector, 
+        x: float, 
+        y: float, 
+        space: pymunk.Space, 
+        mass: float = 5, 
+        radius: float = 12, 
+        max_impulse: float = 100, 
+        power_multiplier: float = 50,
+        elasticity: float = 0.8, 
+        friction: float = 1, 
+        collision_layer: int = 0
+    ):
         super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
         self.has_split = False
 

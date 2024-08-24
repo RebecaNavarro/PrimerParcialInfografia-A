@@ -3,7 +3,7 @@ import logging
 import arcade
 import pymunk
 
-from game_object import Bird, Column, Pig
+from game_object import Bird, Column, Pig, YellowBird, BlueBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -47,6 +47,10 @@ class App(arcade.Window):
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
         self.handler.post_solve = self.collision_handler
+        
+        self.selected_bird_type = Bird
+        self.selected_bird_image = "assets/img/red-bird3.png"
+        
 
     def collision_handler(self, arbiter, space, data):
         impulse_norm = arbiter.total_impulse.length
@@ -90,16 +94,27 @@ class App(arcade.Window):
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if buttons == arcade.MOUSE_BUTTON_LEFT:
             self.end_point = Point2D(x, y)
-            logger.debug(f"Dragging to: {self.end_point}")
-
+            logger.debug(f"Dragging to: {self.end_point}")  
+    
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
         if button == arcade.MOUSE_BUTTON_LEFT:
             logger.debug(f"Releasing from: {self.end_point}")
             self.draw_line = False
             impulse_vector = get_impulse_vector(self.start_point, self.end_point)
-            bird = Bird("assets/img/red-bird3.png", impulse_vector, x, y, self.space)
+            bird = self.selected_bird_type(self.selected_bird_image, impulse_vector, x, y, self.space)
             self.sprites.append(bird)
             self.birds.append(bird)
+
+    def on_key_release(self, symbol: int, modifiers: int):
+        if symbol == arcade.key.R: #Cambia a Bird que es el pajaro Rojo
+            self.selected_bird_type = Bird
+            self.selected_bird_image = "assets/img/red-bird3.png"
+        elif symbol == arcade.key.B: #Cambia a BlueBird que es el pajaro Azul
+            self.selected_bird_type = BlueBird
+            self.selected_bird_image = "assets/img/blue.png"
+        elif symbol == arcade.key.Y: #Cambia a YellowBird que es el pajaro Amarillo
+            self.selected_bird_type = YellowBird
+            self.selected_bird_image = "assets/img/chuck.png"
 
     def on_draw(self):
         arcade.start_render()
