@@ -5,7 +5,7 @@ import arcade.key
 import arcade.key
 import pymunk
 
-from game_object import Bird, Column, LevelManager, Pig, YellowBird, BlueBird
+from game_object import Bird, Column, LevelManager, Pig, YellowBird, BlueBird, ExplosiveBird, GrowingBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -59,6 +59,7 @@ class App(arcade.Window):
         self.bird_type = Bird
         self.bird_image = "assets/img/red-bird3.png"      
 
+        # para que se pueda hacer click dos veces y no se dibuje, sino se aumente la velocidad del pajaro amarillo o se divida el pajáro azul
         self.bird_flying = False
         self.active_bird = None
         self.game_over = False
@@ -89,6 +90,7 @@ class App(arcade.Window):
                 self.bird_flying = False
                 self.active_bird = None
                 break
+        
         return True
             
     def setup_level(self):
@@ -158,6 +160,12 @@ class App(arcade.Window):
             if self.bird_flying:
                 if isinstance(self.active_bird, YellowBird) and not self.active_bird.has_boosted:
                     self.active_bird.boost()
+                if isinstance(self.active_bird, BlueBird) and not self.active_bird.has_split:
+                    self.active_bird.split(self)
+                if isinstance(self.active_bird, ExplosiveBird) and not self.active_bird.has_exploded:
+                    self.active_bird.explode(self)
+                if isinstance(self.active_bird, GrowingBird) and not self.active_bird.has_growth:
+                    self.active_bird.growth()
             else:
                 self.start_point = Point2D(x, y)
                 self.end_point = Point2D(x, y)
@@ -202,17 +210,13 @@ class App(arcade.Window):
         elif symbol == arcade.key.Y:
             self.bird_type = YellowBird
             self.bird_image = "assets/img/chuck.png"
-        # elif symbol == arcade.key.SPACE:
-        #       for bird in self.birds:
-        #         if isinstance(bird,YellowBird):
-        #             bird.boost()
-                    
-        #         elif self.birds.bird_type == BlueBird:
-        #             bird.split()
-        #             break
-        
-    #def bird_power(self):
-       
+        elif symbol == arcade.key.E:
+            self.bird_type = ExplosiveBird
+            self.bird_image = "assets/img/explosive.png"
+        elif symbol == arcade.key.G:
+            self.bird_type = GrowingBird
+            self.bird_image = "assets/img/growing.png"
+              
         
     def on_draw(self):
         arcade.start_render()
