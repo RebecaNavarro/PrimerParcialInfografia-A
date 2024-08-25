@@ -216,4 +216,55 @@ class BlueBird(Bird):
 
         self.has_split = True  
 
+class ExplosiveBird(Bird):
+    def __init__(
+        self, 
+        image_path: str, 
+        impulse_vector: ImpulseVector, 
+        x: float, 
+        y: float, 
+        space: pymunk.Space, 
+        mass: float = 5, 
+        radius: float = 12, 
+        max_impulse: float = 100, 
+        power_multiplier: float = 50,
+        elasticity: float = 0.8, 
+        friction: float = 1, 
+        collision_layer: int = 0
+    ):
+        super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
+        self.has_exploded = False  
+        self.space = space
+
+    def explode(self, app):
+        if not self.has_exploded:
+            self.has_exploded = True
+            angles =[-90, -60, -30, 30, 60, 90,180]
+            for angle in angles:  
+                new_angle = self.body.velocity.angle + math.radians(angle)
+                new_velocity_vector = pymunk.Vec2d(self.body.velocity.length, 0).rotated(new_angle)
+
+                new_body = pymunk.Body(self.body.mass, self.body.moment)
+                new_body.position = self.body.position 
+                new_body.velocity = new_velocity_vector  
+
+                new_shape = pymunk.Circle(new_body, self.shape.radius)
+                new_shape.elasticity = self.shape.elasticity
+                new_shape.friction = self.shape.friction
+
+                new_bird = ExplosiveBird(
+                    self.texture.name,
+                    ImpulseVector(new_velocity_vector.angle, new_velocity_vector.length),
+                    new_body.position.x,
+                    new_body.position.y,
+                    self.space
+                )
+                new_bird.body = new_body 
+                new_bird.shape = new_shape 
+                self.space.add(new_bird.body, new_bird.shape)
+                app.sprites.append(new_bird)  
+                app.birds.append(new_bird)  
+
+        self.has_exploded = True
+
 

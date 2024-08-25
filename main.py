@@ -5,7 +5,7 @@ import arcade.key
 import arcade.key
 import pymunk
 
-from game_object import Bird, Column, Pig, YellowBird, BlueBird
+from game_object import Bird, Column, Pig, YellowBird, BlueBird, ExplosiveBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -101,6 +101,8 @@ class App(arcade.Window):
                     self.active_bird.boost()
                 if isinstance(self.active_bird, BlueBird) and not self.active_bird.has_split:
                     self.active_bird.split(self)
+                if isinstance(self.active_bird, ExplosiveBird) and not self.active_bird.has_exploded:
+                    self.active_bird.explode(self)
             else:
                 self.start_point = Point2D(x, y)
                 self.end_point = Point2D(x, y)
@@ -138,6 +140,9 @@ class App(arcade.Window):
         elif symbol == arcade.key.Y:
             self.bird_type = YellowBird
             self.bird_image = "assets/img/chuck.png"
+        elif symbol == arcade.key.E:
+            self.bird_type = ExplosiveBird
+            self.bird_image = "assets/img/explosive.png"
               
         
     def on_draw(self):
