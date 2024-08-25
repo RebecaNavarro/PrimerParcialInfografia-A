@@ -4,6 +4,7 @@ import arcade
 import arcade.key
 import arcade.key
 import pymunk
+import time
 
 from game_object import Bird, Column, LevelManager, Pig, YellowBird, BlueBird, ExplosiveBird, GrowingBird
 from game_logic import get_impulse_vector, Point2D, get_distance
@@ -70,6 +71,8 @@ class App(arcade.Window):
         self.active_bird = None
         self.game_over = False
         self.isWin = False
+        self.end_time = None
+        self.time_to_close = 3
         
         # Niveles y puntaje
         self.score = 0
@@ -113,7 +116,12 @@ class App(arcade.Window):
 
 
     def on_update(self, delta_time: float):
-        if self.game_over:
+        if self.game_over or self.isWin:
+            if self.end_time is None:
+                self.end_time = time.time()  
+
+            if time.time() - self.end_time > self.time_to_close:
+                self.close()
             return
         self.space.step(1 / 60.0)
         self.update_collisions()
