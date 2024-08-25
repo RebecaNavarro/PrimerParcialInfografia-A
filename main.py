@@ -35,18 +35,18 @@ class App(arcade.Window):
         floor_shape = pymunk.Segment(floor_body, [0, 15], [WIDTH, 15], 0.0)
         floor_shape.friction = 10
         self.space.add(floor_body, floor_shape)
+        floor_body.tag = 'static'
 
         
         right_wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         right_wall_shape = pymunk.Segment(right_wall_body, [WIDTH, 0], [WIDTH, HEIGHT], 0.0)
         right_wall_shape.friction = 10
         self.space.add(right_wall_body, right_wall_shape)
+        right_wall_body.tag = 'static'
 
         self.sprites = arcade.SpriteList()
         self.birds = arcade.SpriteList()
         self.world = arcade.SpriteList()
-        # self.add_columns()
-        # self.add_pigs()
         self.level_manager = LevelManager(self.space)
         self.level_manager.load_level(self.sprites, self.world, self.birds)
         self.mouse_press = None
@@ -69,6 +69,7 @@ class App(arcade.Window):
         self.bird_flying = False
         self.active_bird = None
         self.game_over = False
+        self.isWin = False
         
         # Niveles y puntaje
         self.score = 0
@@ -100,32 +101,20 @@ class App(arcade.Window):
         return True
             
     def setup_level(self):
-        for obj in self.world:
-            self.space.remove(obj.shape, obj.body)
+        for body in list(self.space.bodies):
+            if not getattr(body, 'tag', None) == 'static':
+                for shape in list(body.shapes):
+                    self.space.remove(shape)
+                self.space.remove(body)
         self.level_manager.load_level(self.sprites, self.world, self.birds)
         self.bird_count = 0
         self.score = 0
         self.remaining_pigs = len([obj for obj in self.world if isinstance(obj, Pig)])
 
-        
-    # def add_columns(self, num_columns):
-    #     for i in range(num_columns):
-    #         x = WIDTH // 2 + (i * 400)
-    #         column = Column(x, 50, self.space)
-    #         self.sprites.append(column)
-    #         self.world.append(column)
-
-    # def add_pigs(self, num_pigs):
-    #     for i in range(num_pigs):
-    #         x = WIDTH / 2 + (i * 100)
-    #         pig = Pig(x, 100, self.space)
-    #         self.sprites.append(pig)
-    #         self.world.append(pig)
 
     def on_update(self, delta_time: float):
         if self.game_over:
             return
-
         self.space.step(1 / 60.0)
         self.update_collisions()
         self.sprites.update()
@@ -135,28 +124,16 @@ class App(arcade.Window):
             self.total_score += self.score
             logger.debug(f"¡Perdiste! Puntaje acumulado: {self.total_score}")
             self.setup_level()
-        if self.remaining_pigs == 0 and self.bird_count >= MAX_BIRDS:
+        if self.remaining_pigs == 0 and self.bird_count >= MAX_BIRDS and not self.bird_flying:
             if self.level_manager.next_level():
                 self.total_score += self.score
                 self.setup_level()
             else:
                 logger.debug("¡Juego completado!")
                 logger.debug(f"Puntaje acumulado: {self.total_score}")
-                self.close()
-                return
+                self.isWin = True
+                self.setup_level()
 
-        # if all(isinstance(sprite, Pig) and sprite.is_destroyed for sprite in self.world):
-        #     if self.level_manager.next_level():
-        #         self.setup_level()
-        #     else:
-        #         logger.debug("¡Juego completado!")
-        #         self.close()
-        #         return
-        # if self.bird_count > MAX_BIRDS:
-        #     if any(isinstance(sprite, Pig) and not sprite.is_destroyed for sprite in self.world):
-        #         self.game_over = True
-        #         logger.debug("¡Perdiste!")
-        #         self.setup_level()
 
     def update_collisions(self):
         pass
@@ -234,7 +211,8 @@ class App(arcade.Window):
         arcade.draw_text(f"Puntaje: {self.score}", 10, HEIGHT - 30, arcade.color.WHITE, font_size=20)
         if self.game_over:
             arcade.draw_text("¡Perdiste!", WIDTH // 2, HEIGHT // 2, arcade.color.RED, font_size=50, anchor_x="center")
-
+        if self.isWin:
+            arcade.draw_text("¡Ganaste!", WIDTH // 2, HEIGHT // 2, arcade.color.RED, font_size=50, anchor_x="center")
 
 def main():
     app = App()

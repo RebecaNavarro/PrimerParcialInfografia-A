@@ -341,45 +341,60 @@ class LevelManager:
             return True
         return False
 
-    def level_1(self, sprites, world):
-        for x in range(600, 1200, 400):
-            column = Column(x, 50, self.space)
+    def add_objects(self, columns_data, pigs_data, sprites, world):
+        for x, y in columns_data:
+            column = Column(x, y, self.space)
             sprites.append(column)
             world.append(column)
-
-        for x in range(600,1200, 1000):
-            pig = Pig(x,100,self.space)
+        for x, y in pigs_data:
+            pig = Pig(x, y, self.space)
             sprites.append(pig)
             world.append(pig)
+            
+    def level_1(self, sprites, world):
+        columns_data = [
+            (600, 50),   
+        ]
+        pigs_data = [
+            (600, 100),
+        ]
+        self.add_objects(columns_data, pigs_data, sprites, world)
 
     def level_2(self, sprites, world):
-        for x in range(600, 1200, 200):
-            column = Column(x, 50, self.space)
-            sprites.append(column)
-            world.append(column)
+        columns_data = [
+            (600, 50),
+            (800, 50),   
+        ]
+        pigs_data = [
+            (600, 100),
+            (750, 100),
+            (850, 100),
+        ]
+        self.add_objects(columns_data, pigs_data, sprites, world)
 
-        for x in range(800,1200, 400):
-            pig = Pig(x,100,self.space)
-            sprites.append(pig)
-            world.append(pig)
+            
     def level_3(self, sprites, world):
-        for x in range(600, 1200, 300):
-            column = Column(x, 50, self.space)
-            sprites.append(column)
-            world.append(column)
-
-        for x in range(600,1200, 400):
-            pig = Pig(x,100,self.space)
-            sprites.append(pig)
-            world.append(pig)
+        columns_data = [
+            (700, 50),
+            (750, 50), 
+            (850, 50),
+            (900, 50),    
+        ]
+        pigs_data = [
+            (800, 50),
+        ]
+        self.add_objects(columns_data, pigs_data, sprites, world)
     def level_4(self, sprites, world):
-        for x in range(600, 1200, 600):
-            column = Column(x, 50, self.space)
-            sprites.append(column)
-            world.append(column)
+        columns_data = [
+            (650, 50),
+            (700, 50),   
+            (800, 50),   
+            (850, 50),   
 
-        for x in range(600,1200, 600):
-            pig = Pig(x,100,self.space)
-            sprites.append(pig)
-            world.append(pig)
+        ]
+        pigs_data = [
+            (675, 100),
+            (825, 100),
+        ]
+        self.add_objects(columns_data, pigs_data, sprites, world)
 
