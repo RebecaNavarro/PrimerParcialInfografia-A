@@ -36,6 +36,12 @@ class App(arcade.Window):
         floor_shape.friction = 10
         self.space.add(floor_body, floor_shape)
 
+        
+        right_wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        right_wall_shape = pymunk.Segment(right_wall_body, [WIDTH, 0], [WIDTH, HEIGHT], 0.0)
+        right_wall_shape.friction = 10
+        self.space.add(right_wall_body, right_wall_shape)
+
         self.sprites = arcade.SpriteList()
         self.birds = arcade.SpriteList()
         self.world = arcade.SpriteList()
@@ -72,7 +78,7 @@ class App(arcade.Window):
 
     def collision_handler(self, arbiter, space, data):
         impulse_norm = arbiter.total_impulse.length
-        if impulse_norm < 100:
+        if impulse_norm < 1000:
             return True
         logger.debug(impulse_norm)
         if impulse_norm > 1200:
@@ -193,7 +199,7 @@ class App(arcade.Window):
 
     def check_active_bird(self):
         if self.active_bird:
-            if self.active_bird.body.position.y < 0 or \
+            if self.active_bird.body.position.y < 10 or \
             self.active_bird.body.position.x < 0 or \
             self.active_bird.body.position.x > WIDTH or \
             self.active_bird.body.position.y > HEIGHT or \
