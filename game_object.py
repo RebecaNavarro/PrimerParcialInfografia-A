@@ -64,6 +64,7 @@ class Pig(arcade.Sprite):
         elasticity: float = 0.8,
         friction: float = 0.4,
         collision_layer: int = 0,
+        is_destroyed: bool = False,
     ):
         super().__init__("assets/img/pig_failed.png", 0.1)
         moment = pymunk.moment_for_circle(mass, 0, self.width / 2 - 3)
@@ -76,6 +77,7 @@ class Pig(arcade.Sprite):
         space.add(body, shape)
         self.body = body
         self.shape = shape
+        self.is_destroyed = False
 
     def update(self):
         self.center_x = self.shape.body.position.x
@@ -186,3 +188,64 @@ class BlueBird(Bird):
                                     self.body.position.x, self.body.position.y, self.space)
                 self.space.add(new_bird)
             self.has_split = True
+class LevelManager:
+    def __init__(self, space):
+        self.space = space
+        self.current_level = 0
+        self.levels = [
+            self.level_1,
+            self.level_2,
+            self.level_3,
+            self.level_4,
+        ]
+
+    def load_level(self, sprites, world, birds):
+        sprites.clear()
+        world.clear()
+        birds.clear()
+        self.levels[self.current_level](sprites, world)
+
+    def next_level(self):
+        if self.current_level + 1 < len(self.levels):
+            self.current_level += 1
+            return True
+        return False
+
+    def level_1(self, sprites, world):
+        for x in range(600, 1200, 400):
+            column = Column(x, 50, self.space)
+            sprites.append(column)
+            world.append(column)
+
+        pig = Pig(900, 100, self.space)
+        sprites.append(pig)
+        world.append(pig)
+
+    def level_2(self, sprites, world):
+        for x in range(500, 1300, 300):
+            column = Column(x, 50, self.space)
+            sprites.append(column)
+            world.append(column)
+
+        pig = Pig(800, 100, self.space)
+        sprites.append(pig)
+        world.append(pig)
+    def level_3(self, sprites, world):
+        for x in range(500, 1300, 300):
+            column = Column(x, 50, self.space)
+            sprites.append(column)
+            world.append(column)
+
+        pig = Pig(800, 100, self.space)
+        sprites.append(pig)
+        world.append(pig)
+    def level_4(self, sprites, world):
+        for x in range(500, 1300, 300):
+            column = Column(x, 50, self.space)
+            sprites.append(column)
+            world.append(column)
+
+        pig = Pig(800, 100, self.space)
+        sprites.append(pig)
+        world.append(pig)
+

@@ -3,7 +3,7 @@ import logging
 import arcade
 import pymunk
 
-from game_object import Bird, Column, Pig
+from game_object import Bird, Column, LevelManager, Pig
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -36,8 +36,11 @@ class App(arcade.Window):
         self.sprites = arcade.SpriteList()
         self.birds = arcade.SpriteList()
         self.world = arcade.SpriteList()
-        self.add_columns()
-        self.add_pigs()
+        # self.add_columns()
+        # self.add_pigs()
+        self.level_manager = LevelManager(self.space)
+        self.level_manager.load_level(self.sprites, self.world, self.birds)
+        self.mouse_press = None
 
         self.start_point = Point2D()
         self.end_point = Point2D()
@@ -60,22 +63,32 @@ class App(arcade.Window):
                     self.space.remove(obj.shape, obj.body)
 
         return True
-
-    def add_columns(self):
-        for x in range(WIDTH // 2, WIDTH, 400):
+    def setup_level(self):
+        self.level_manager.load_level(self.sprites, self.world, self.birds)
+        
+    def add_columns(self, num_columns):
+        for i in range(num_columns):
+            x = WIDTH // 2 + (i * 400)
             column = Column(x, 50, self.space)
             self.sprites.append(column)
             self.world.append(column)
 
-    def add_pigs(self):
-        pig1 = Pig(WIDTH / 2, 100, self.space)
-        self.sprites.append(pig1)
-        self.world.append(pig1)
+    def add_pigs(self, num_pigs):
+        for i in range(num_pigs):
+            x = WIDTH / 2 + (i * 100)
+            pig = Pig(x, 100, self.space)
+            self.sprites.append(pig)
+            self.world.append(pig)
 
     def on_update(self, delta_time: float):
         self.space.step(1 / 60.0)  # actualiza la simulacion de las fisicas
         self.update_collisions()
         self.sprites.update()
+        if all(isinstance(sprite, Pig) and sprite.is_destroyed for sprite in self.world):
+            if self.level_manager.next_level():
+                self.setup_level()
+            else:
+                print("¡Juego completado!")
 
     def update_collisions(self):
         pass
