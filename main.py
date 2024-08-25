@@ -5,7 +5,7 @@ import arcade.key
 import arcade.key
 import pymunk
 
-from game_object import Bird, Column, Pig, YellowBird, BlueBird, ExplosiveBird
+from game_object import Bird, Column, Pig, YellowBird, BlueBird, ExplosiveBird, GrowingBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -73,6 +73,7 @@ class App(arcade.Window):
                 self.bird_flying = False
                 self.active_bird = None
                 break
+        
         return True
 
     def add_columns(self):
@@ -103,6 +104,8 @@ class App(arcade.Window):
                     self.active_bird.split(self)
                 if isinstance(self.active_bird, ExplosiveBird) and not self.active_bird.has_exploded:
                     self.active_bird.explode(self)
+                if isinstance(self.active_bird, GrowingBird) and not self.active_bird.has_growth:
+                    self.active_bird.growth()
             else:
                 self.start_point = Point2D(x, y)
                 self.end_point = Point2D(x, y)
@@ -143,6 +146,9 @@ class App(arcade.Window):
         elif symbol == arcade.key.E:
             self.bird_type = ExplosiveBird
             self.bird_image = "assets/img/explosive.png"
+        elif symbol == arcade.key.G:
+            self.bird_type = GrowingBird
+            self.bird_image = "assets/img/growing.png"
               
         
     def on_draw(self):
