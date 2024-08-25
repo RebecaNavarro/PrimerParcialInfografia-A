@@ -19,6 +19,7 @@ WIDTH = 1800
 HEIGHT = 600
 TITLE = "Angry birds"
 GRAVITY = -900
+MAX_BIRDS = 3
 
 
 class App(arcade.Window):
@@ -48,6 +49,7 @@ class App(arcade.Window):
         self.end_point = Point2D()
         self.distance = 0
         self.draw_line = False
+        self.bird_count = 0 
 
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
@@ -59,6 +61,13 @@ class App(arcade.Window):
 
         self.bird_flying = False
         self.active_bird = None
+        self.game_over = False
+        
+        # Niveles y puntaje
+        self.score = 0
+        self.total_score = 0
+        self.remaining_pigs = len([obj for obj in self.world if isinstance(obj, Pig)])
+
 
     def collision_handler(self, arbiter, space, data):
         impulse_norm = arbiter.total_impulse.length
@@ -68,42 +77,78 @@ class App(arcade.Window):
         if impulse_norm > 1200:
             for obj in self.world:
                 if obj.shape in arbiter.shapes:
+                    if isinstance(obj, Pig):
+                        self.score += 100
+                        self.remaining_pigs -= 1
+                    elif isinstance(obj, Column):
+                        self.score += 35
                     obj.remove_from_sprite_lists()
                     self.space.remove(obj.shape, obj.body)
-
         for bird in self.birds:
             if bird.shape in arbiter.shapes:
                 self.bird_flying = False
                 self.active_bird = None
                 break
-
         return True
+            
     def setup_level(self):
+        for obj in self.world:
+            self.space.remove(obj.shape, obj.body)
         self.level_manager.load_level(self.sprites, self.world, self.birds)
-        
-    def add_columns(self, num_columns):
-        for i in range(num_columns):
-            x = WIDTH // 2 + (i * 400)
-            column = Column(x, 50, self.space)
-            self.sprites.append(column)
-            self.world.append(column)
+        self.bird_count = 0
+        self.score = 0
+        self.remaining_pigs = len([obj for obj in self.world if isinstance(obj, Pig)])
 
-    def add_pigs(self, num_pigs):
-        for i in range(num_pigs):
-            x = WIDTH / 2 + (i * 100)
-            pig = Pig(x, 100, self.space)
-            self.sprites.append(pig)
-            self.world.append(pig)
+        
+    # def add_columns(self, num_columns):
+    #     for i in range(num_columns):
+    #         x = WIDTH // 2 + (i * 400)
+    #         column = Column(x, 50, self.space)
+    #         self.sprites.append(column)
+    #         self.world.append(column)
+
+    # def add_pigs(self, num_pigs):
+    #     for i in range(num_pigs):
+    #         x = WIDTH / 2 + (i * 100)
+    #         pig = Pig(x, 100, self.space)
+    #         self.sprites.append(pig)
+    #         self.world.append(pig)
 
     def on_update(self, delta_time: float):
-        self.space.step(1 / 60.0)  # actualiza la simulacion de las fisicas
+        if self.game_over:
+            return
+
+        self.space.step(1 / 60.0)
         self.update_collisions()
         self.sprites.update()
-        if all(isinstance(sprite, Pig) and sprite.is_destroyed for sprite in self.world):
+        self.check_active_bird()
+        if self.bird_count >= MAX_BIRDS and self.remaining_pigs > 0 and not self.bird_flying:
+            self.game_over = True
+            self.total_score += self.score
+            logger.debug(f"¡Perdiste! Puntaje acumulado: {self.total_score}")
+            self.setup_level()
+        if self.remaining_pigs == 0 and self.bird_count >= MAX_BIRDS:
             if self.level_manager.next_level():
+                self.total_score += self.score
                 self.setup_level()
             else:
-                print("¡Juego completado!")
+                logger.debug("¡Juego completado!")
+                logger.debug(f"Puntaje acumulado: {self.total_score}")
+                self.close()
+                return
+
+        # if all(isinstance(sprite, Pig) and sprite.is_destroyed for sprite in self.world):
+        #     if self.level_manager.next_level():
+        #         self.setup_level()
+        #     else:
+        #         logger.debug("¡Juego completado!")
+        #         self.close()
+        #         return
+        # if self.bird_count > MAX_BIRDS:
+        #     if any(isinstance(sprite, Pig) and not sprite.is_destroyed for sprite in self.world):
+        #         self.game_over = True
+        #         logger.debug("¡Perdiste!")
+        #         self.setup_level()
 
     def update_collisions(self):
         pass
@@ -129,17 +174,24 @@ class App(arcade.Window):
             logger.debug(f"Releasing from: {self.end_point}")
             self.draw_line = False
             impulse_vector = get_impulse_vector(self.start_point, self.end_point)
+            self.bird_count += 1 
             bird = self.bird_type(self.bird_image, impulse_vector, x, y, self.space)
             self.sprites.append(bird)
             self.birds.append(bird)
             self.bird_flying = True
             self.active_bird = bird
+        else:
+                logger.debug("¡No puedes lanzar más pájaros!")
 
     def check_active_bird(self):
         if self.active_bird:
-            if self.active_bird.body.position.y < 0 or self.active_bird.body.velocity.length < 10:
+            if self.active_bird.body.position.y < 0 or \
+            self.active_bird.body.position.x < 0 or \
+            self.active_bird.body.position.x > WIDTH or \
+            self.active_bird.body.position.y > HEIGHT or \
+            self.active_bird.body.velocity.length < 10:
                 self.active_bird = None
-
+                self.bird_flying = False                
     def on_key_release(self, symbol: int, modifiers: int):
         if symbol == arcade.key.R: 
             self.bird_type = Bird
@@ -169,6 +221,9 @@ class App(arcade.Window):
         if self.draw_line:
             arcade.draw_line(self.start_point.x, self.start_point.y, self.end_point.x, self.end_point.y,
                              arcade.color.BLACK, 3)
+        arcade.draw_text(f"Puntaje: {self.score}", 10, HEIGHT - 30, arcade.color.WHITE, font_size=20)
+        if self.game_over:
+            arcade.draw_text("¡Perdiste!", WIDTH // 2, HEIGHT // 2, arcade.color.RED, font_size=50, anchor_x="center")
 
 
 def main():
