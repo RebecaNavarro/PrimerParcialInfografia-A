@@ -1,8 +1,8 @@
 import math
 import arcade
+import arcade.key
 import pymunk
 from game_logic import ImpulseVector
-
 
 class Bird(arcade.Sprite):
     """
@@ -154,14 +154,17 @@ class YellowBird(Bird):
         boost_multiplier: float = 2
     ):
         super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
+        self.initial_impulse = impulse_vector
         self.boost_multiplier = boost_multiplier
         self.has_boosted = False
 
-    def on_left_click(self):
-        if not self.has_boosted:
-            impulse_vector = pymunk.Vec2d(1, 0).rotated(self.body.angle) * self.boost_multiplier * self.body.mass
-            self.body.apply_impulse_at_local_point(impulse_vector)
-            self.has_boosted = True
+
+    def boost(self):
+            if not self.has_boosted:
+                impulse_vector = pymunk.Vec2d(1, 0).rotated(self.body.angle) * self.boost_multiplier * self.body.mass * 500
+                self.body.apply_impulse_at_local_point(impulse_vector)
+                self.has_boosted = True
+       
 class BlueBird(Bird):
     def __init__(
         self, 
@@ -181,7 +184,7 @@ class BlueBird(Bird):
         super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
         self.has_split = False
 
-    def on_left_click(self):
+    def split(self):
         if not self.has_split:
             angles = [-30, 0, 30]
             for angle in angles:
