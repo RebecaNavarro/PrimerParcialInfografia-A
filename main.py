@@ -54,6 +54,7 @@ class App(arcade.Window):
         self.bird_type = Bird
         self.bird_image = "assets/img/red-bird3.png"      
 
+        # para que se pueda hacer click dos veces y no se dibuje, sino se aumente la velocidad del pajaro amarillo o se divida el pajáro azul
         self.bird_flying = False
         self.active_bird = None
 
@@ -67,13 +68,11 @@ class App(arcade.Window):
                 if obj.shape in arbiter.shapes:
                     obj.remove_from_sprite_lists()
                     self.space.remove(obj.shape, obj.body)
-
         for bird in self.birds:
             if bird.shape in arbiter.shapes:
                 self.bird_flying = False
                 self.active_bird = None
                 break
-
         return True
 
     def add_columns(self):
@@ -100,6 +99,8 @@ class App(arcade.Window):
             if self.bird_flying:
                 if isinstance(self.active_bird, YellowBird) and not self.active_bird.has_boosted:
                     self.active_bird.boost()
+                if isinstance(self.active_bird, BlueBird) and not self.active_bird.has_split:
+                    self.active_bird.split(self)
             else:
                 self.start_point = Point2D(x, y)
                 self.end_point = Point2D(x, y)
@@ -137,17 +138,7 @@ class App(arcade.Window):
         elif symbol == arcade.key.Y:
             self.bird_type = YellowBird
             self.bird_image = "assets/img/chuck.png"
-        # elif symbol == arcade.key.SPACE:
-        #       for bird in self.birds:
-        #         if isinstance(bird,YellowBird):
-        #             bird.boost()
-                    
-        #         elif self.birds.bird_type == BlueBird:
-        #             bird.split()
-        #             break
-        
-    #def bird_power(self):
-       
+              
         
     def on_draw(self):
         arcade.start_render()

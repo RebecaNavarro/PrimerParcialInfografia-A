@@ -160,10 +160,10 @@ class YellowBird(Bird):
 
 
     def boost(self):
-            if not self.has_boosted:
-                impulse_vector = pymunk.Vec2d(1, 0).rotated(self.body.angle) * self.boost_multiplier * self.body.mass * 500
-                self.body.apply_impulse_at_local_point(impulse_vector)
-                self.has_boosted = True
+        if not self.has_boosted:
+            impulse_vector = pymunk.Vec2d(1, 0).rotated(self.body.angle) * self.boost_multiplier * self.body.mass * 500
+            self.body.apply_impulse_at_local_point(impulse_vector)
+            self.has_boosted = True
        
 class BlueBird(Bird):
     def __init__(
@@ -183,13 +183,37 @@ class BlueBird(Bird):
     ):
         super().__init__(image_path, impulse_vector, x, y, space, mass, radius, max_impulse, power_multiplier, elasticity, friction, collision_layer)
         self.has_split = False
+        self.space = space
 
-    def split(self):
+    def split(self, app):
         if not self.has_split:
-            angles = [-30, 0, 30]
+            angles = [-30, 30]
+
             for angle in angles:
-                new_impulse_vector = pymunk.Vec2d(1, 0).rotated(math.radians(angle)) * self.body.velocity.length
-                new_bird = BlueBird(self.texture.name, ImpulseVector(new_impulse_vector.angle, new_impulse_vector.length), 
-                                    self.body.position.x, self.body.position.y, self.space)
-                self.space.add(new_bird)
-            self.has_split = True
+                new_angle = self.body.velocity.angle + math.radians(angle)
+                new_velocity_vector = pymunk.Vec2d(self.body.velocity.length, 0).rotated(new_angle)
+
+                new_body = pymunk.Body(self.body.mass, self.body.moment)
+                new_body.position = self.body.position 
+                new_body.velocity = new_velocity_vector  
+
+                new_shape = pymunk.Circle(new_body, self.shape.radius)
+                new_shape.elasticity = self.shape.elasticity
+                new_shape.friction = self.shape.friction
+
+                new_bird = BlueBird(
+                    self.texture.name,
+                    ImpulseVector(new_velocity_vector.angle, new_velocity_vector.length),
+                    new_body.position.x,
+                    new_body.position.y,
+                    self.space
+                )
+                new_bird.body = new_body 
+                new_bird.shape = new_shape 
+                self.space.add(new_bird.body, new_bird.shape)
+                app.sprites.append(new_bird)  
+                app.birds.append(new_bird)  
+
+        self.has_split = True  
+
+
