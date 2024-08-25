@@ -1,9 +1,11 @@
 import math
 import logging
 import arcade
+import arcade.key
+import arcade.key
 import pymunk
 
-from game_object import Bird, Column, LevelManager, Pig
+from game_object import Bird, Column, LevelManager, Pig, YellowBird, BlueBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -50,6 +52,13 @@ class App(arcade.Window):
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
         self.handler.post_solve = self.collision_handler
+        
+        # que cambie de tipo de pájaro, aquí se guarda
+        self.bird_type = Bird
+        self.bird_image = "assets/img/red-bird3.png"      
+
+        self.bird_flying = False
+        self.active_bird = None
 
     def collision_handler(self, arbiter, space, data):
         impulse_norm = arbiter.total_impulse.length
@@ -61,6 +70,12 @@ class App(arcade.Window):
                 if obj.shape in arbiter.shapes:
                     obj.remove_from_sprite_lists()
                     self.space.remove(obj.shape, obj.body)
+
+        for bird in self.birds:
+            if bird.shape in arbiter.shapes:
+                self.bird_flying = False
+                self.active_bird = None
+                break
 
         return True
     def setup_level(self):
@@ -95,25 +110,58 @@ class App(arcade.Window):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            self.start_point = Point2D(x, y)
-            self.end_point = Point2D(x, y)
-            self.draw_line = True
-            logger.debug(f"Start Point: {self.start_point}")
-
+            if self.bird_flying:
+                if isinstance(self.active_bird, YellowBird) and not self.active_bird.has_boosted:
+                    self.active_bird.boost()
+            else:
+                self.start_point = Point2D(x, y)
+                self.end_point = Point2D(x, y)
+                self.draw_line = True
+                logger.debug(f"Start Point: {self.start_point}")
+           
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if buttons == arcade.MOUSE_BUTTON_LEFT:
             self.end_point = Point2D(x, y)
-            logger.debug(f"Dragging to: {self.end_point}")
-
+            logger.debug(f"Dragging to: {self.end_point}") 
+    
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
-        if button == arcade.MOUSE_BUTTON_LEFT:
+        if button == arcade.MOUSE_BUTTON_LEFT and not self.bird_flying:
             logger.debug(f"Releasing from: {self.end_point}")
             self.draw_line = False
             impulse_vector = get_impulse_vector(self.start_point, self.end_point)
-            bird = Bird("assets/img/red-bird3.png", impulse_vector, x, y, self.space)
+            bird = self.bird_type(self.bird_image, impulse_vector, x, y, self.space)
             self.sprites.append(bird)
             self.birds.append(bird)
+            self.bird_flying = True
+            self.active_bird = bird
 
+    def check_active_bird(self):
+        if self.active_bird:
+            if self.active_bird.body.position.y < 0 or self.active_bird.body.velocity.length < 10:
+                self.active_bird = None
+
+    def on_key_release(self, symbol: int, modifiers: int):
+        if symbol == arcade.key.R: 
+            self.bird_type = Bird
+            self.bird_image = "assets/img/red-bird3.png"
+        elif symbol == arcade.key.B: 
+            self.bird_type = BlueBird
+            self.bird_image = "assets/img/blue.png"       
+        elif symbol == arcade.key.Y:
+            self.bird_type = YellowBird
+            self.bird_image = "assets/img/chuck.png"
+        # elif symbol == arcade.key.SPACE:
+        #       for bird in self.birds:
+        #         if isinstance(bird,YellowBird):
+        #             bird.boost()
+                    
+        #         elif self.birds.bird_type == BlueBird:
+        #             bird.split()
+        #             break
+        
+    #def bird_power(self):
+       
+        
     def on_draw(self):
         arcade.start_render()
         arcade.draw_lrwh_rectangle_textured(0, 0, WIDTH, HEIGHT, self.background)
